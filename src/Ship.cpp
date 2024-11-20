@@ -1,4 +1,3 @@
-// Ship.cpp
 #include "Ship.h"
 
 // Constructor initializes the ship's name and size
