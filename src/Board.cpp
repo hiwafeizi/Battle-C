@@ -1,7 +1,8 @@
-// Board.cpp
 #include "Board.h"
 #include <iostream>
 #include <iomanip>
+#include <vector>
+#include <utility>
 
 // Constructor initializes the game grid
 Board::Board() {

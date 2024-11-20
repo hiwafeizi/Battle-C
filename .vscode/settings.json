@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.css": "tailwindcss",
+        "cstdlib": "cpp",
+        "utility": "cpp",
+        "string": "cpp"
+    }
+}
