@@ -59,6 +59,13 @@ bool Board::placeShip(Ship& ship, int x, int y, Orientation orientation) {
 
 // Processes an attack on the board
 bool Board::receiveAttack(int x, int y, Ship*& hitShip) {
+    // Check boundaries first
+    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) {
+        std::cerr << "Attack coordinates out of bounds: (" << x << ", " << y << ")\n";
+        hitShip = nullptr;
+        return false;
+    }
+
     // Check if the coordinate has already been attacked
     if (grid[y][x] == MISS || grid[y][x] == HIT) {
         hitShip = nullptr;
@@ -84,27 +91,65 @@ bool Board::receiveAttack(int x, int y, Ship*& hitShip) {
     return false;
 }
 
-// Displays the board
-void Board::display(bool showShips) const {
-    std::cout << "  ";
+
+// Displays two boards side by side: player's board and opponent's board
+void Board::display(const Board& opponentBoard, bool showPlayerShips, bool showOpponentShips) const {
+    std::cout << "Your Board:                                    AI's Board:\n";
+
+    // Print column headers for both boards
+    std::cout << "   ";
     for (int i = 0; i < BOARD_SIZE; i++)
-        std::cout << static_cast<char>('A' + i) << " ";
+        std::cout << static_cast<char>('A' + i) << "  ";
+    std::cout << "                ";
+    for (int i = 0; i < BOARD_SIZE; i++)
+        std::cout << static_cast<char>('A' + i) << "  ";
     std::cout << std::endl;
 
+    // Print rows of both boards side by side
     for (int i = 0; i < BOARD_SIZE; i++) {
+        // Row number for the player's board
         std::cout << std::setw(2) << i + 1 << " ";
+
+        // Player's board row
         for (int j = 0; j < BOARD_SIZE; j++) {
-            char symbol = '.';
+            char playerSymbol = '.'; // Default: empty cell
             if (grid[i][j] == MISS)
-                symbol = 'o';
+                playerSymbol = 'o'; // Missed attack
             else if (grid[i][j] == HIT)
-                symbol = 'x';
-            else if (showShips && grid[i][j] == SHIP)
-                symbol = 'S';
-            std::cout << symbol << " ";
+                playerSymbol = 'x'; // Successful hit
+            else if (showPlayerShips && grid[i][j] == SHIP)
+                playerSymbol = 'S'; // Show ship if allowed
+            std::cout << playerSymbol << "  ";
         }
+
+        // Separator between boards
+        std::cout << "             ";
+
+        // Row number for the opponent's board
+        std::cout << std::setw(2) << i + 1 << " ";
+
+        // Opponent's board row
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            char opponentSymbol = '.'; // Default: empty cell
+            if (opponentBoard.grid[i][j] == MISS)
+                opponentSymbol = 'o'; // Missed attack
+            else if (opponentBoard.grid[i][j] == HIT)
+                opponentSymbol = 'x'; // Successful hit
+            else if (showOpponentShips && opponentBoard.grid[i][j] == SHIP)
+                opponentSymbol = 'S'; // Show ship if allowed
+            std::cout << opponentSymbol << "  ";
+        }
+
         std::cout << std::endl;
     }
+}
+
+// Displays the scoreboard during the game
+void Board::displayScoreboard(int playerMoves, int playerDestroyedShips, int aiMoves, int aiDestroyedShips) const {
+    std::cout << "\n=== Scoreboard ===\n";
+    std::cout << "Player Moves: " << playerMoves << "   Ships Destroyed: " << playerDestroyedShips << "\n";
+    std::cout << "AI Moves:     " << aiMoves << "   Ships Destroyed: " << aiDestroyedShips << "\n";
+    std::cout << "==================\n\n";
 }
 
 // Checks if all ships are sunk

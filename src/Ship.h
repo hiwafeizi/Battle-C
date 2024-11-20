@@ -1,8 +1,10 @@
 #ifndef SHIP_H
 #define SHIP_H
 
-#include <string>
-#include <vector>
+#include <vector>   // For std::vector
+#include <utility>  // For std::pair
+#include <string>   // For std::string
+
 
 // Represents a ship in the game
 class Ship {

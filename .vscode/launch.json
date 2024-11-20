@@ -5,13 +5,14 @@
             "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/hello.exe", // Adjust the executable name and path
+            "program": "${workspaceFolder}/src/test.exe",
             "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/src",
             "environment": [],
-            "externalConsole": true, // Opens a clean terminal for program output
+            "externalConsole": true,
             "MIMode": "gdb",
+            "miDebuggerPath": "D:/apps/cpp/ucrt64/bin/gdb.exe",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -19,7 +20,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "build"
+            "preLaunchTask": "build all files"
         }
     ]
 }

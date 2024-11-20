@@ -27,7 +27,15 @@ std::pair<int, int> parseCoordinate(const std::string& coord) {
     return {x, y};
 }
 
+
 int main() {
+    // Initialize game variables
+    bool gameOver = false;
+    int playerMoves = 0;
+    int aiMoves = 0;
+    int playerDestroyedShips = 0;
+    int aiDestroyedShips = 0;
+
     // Initialize random seed
     srand(static_cast<unsigned>(time(0)));
 
@@ -51,7 +59,9 @@ int main() {
     for (const auto& info : shipInfo) {
         bool placed = false;
         while (!placed) {
-            playerBoard.display(true);
+            // Show both boards
+            playerBoard.display(aiBoard, true, false);
+
             std::cout << "Place your " << info.first << " (Size: " << info.second << ")\n";
             std::cout << "Enter starting coordinate (e.g., A5): ";
             std::string coord;
@@ -92,10 +102,6 @@ int main() {
         }
     }
 
-    // Initialize game variables
-    bool gameOver = false;
-    int playerMoves = 0;
-    int aiMoves = 0;
     std::vector<std::pair<int, int>> aiGuesses;
 
     // AI targeting mode variables
@@ -106,12 +112,13 @@ int main() {
 
     // Main game loop
     while (!gameOver) {
+        
         // Player's turn
         bool playerTurn = true;
         while (playerTurn) {
-            playerBoard.display(true);
-            std::cout << "\nOpponent's Board:\n";
-            aiBoard.display(false);
+            // Show both boards and scores
+            playerBoard.display(aiBoard, true, false);
+            playerBoard.displayScoreboard(playerMoves, playerDestroyedShips, aiMoves, aiDestroyedShips);
 
             std::cout << "Enter coordinate to attack (e.g., B6): ";
             std::string coord;
@@ -138,9 +145,10 @@ int main() {
                 std::cout << "It's a hit!\n";
                 if (hitShip->isSunk()) {
                     std::cout << "You sank the opponent's " << hitShip->getName() << "!\n";
+                    playerDestroyedShips++;
                 }
                 if (aiBoard.allShipsSunk()) {
-                    std::cout << "Congratulations! You win!\n";
+                    std::cout << "\nCongratulations! You won! You are a good fighter.\n";
                     gameOver = true;
                     break;
                 }
@@ -160,20 +168,20 @@ int main() {
             int x, y;
 
             if (aiMode == HUNT) {
-                // Random selection
+                // Random selection using a checkerboard pattern
                 do {
                     x = rand() % BOARD_SIZE;
                     y = rand() % BOARD_SIZE;
-                } while (playerBoard.isAlreadyAttacked(x, y));
+                } while ((x + y) % 2 != 0 || playerBoard.isAlreadyAttacked(x, y));
             } else if (aiMode == TARGET) {
                 // Select from potential targets
                 if (!aiPotentialTargets.empty()) {
-                    auto target = aiPotentialTargets.back();
-                    aiPotentialTargets.pop_back();
+                    auto target = aiPotentialTargets.front(); // FIFO: process oldest first
+                    aiPotentialTargets.erase(aiPotentialTargets.begin());
                     x = target.first;
                     y = target.second;
                 } else {
-                    aiMode = HUNT;
+                    aiMode = HUNT; // No more targets, switch back to HUNT mode
                     continue;
                 }
             }
@@ -187,47 +195,79 @@ int main() {
             if (hit) {
                 std::cout << "AI hits your ship!\n";
 
-                // Add adjacent cells to potential targets
                 if (aiMode == HUNT) {
+                    // Transition to TARGET mode after the first hit
                     aiMode = TARGET;
                     aiHits.push_back({x, y});
+                } else if (aiHits.size() >= 2) {
+                    // Determine ship orientation after two hits
+                    auto firstHit = aiHits.front();
+                    auto secondHit = aiHits.back();
 
-                    int dx[] = {-1, 1, 0, 0};
-                    int dy[] = {0, 0, -1, 1};
-                    for (int i = 0; i < 4; i++) {
-                        int nx = x + dx[i];
-                        int ny = y + dy[i];
-                        if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
-                            if (!playerBoard.isAlreadyAttacked(nx, ny)) {
-                                aiPotentialTargets.push_back({nx, ny});
-                            }
+                    if (firstHit.first == secondHit.first) {
+                        // Horizontal ship
+                        int row = firstHit.first;
+                        int minCol = std::min(firstHit.second, secondHit.second);
+                        int maxCol = std::max(firstHit.second, secondHit.second);
+
+                        if (maxCol + 1 < BOARD_SIZE && !playerBoard.isAlreadyAttacked(row, maxCol + 1))
+                            aiPotentialTargets.push_back({row, maxCol + 1});
+                        if (minCol - 1 >= 0 && !playerBoard.isAlreadyAttacked(row, minCol - 1))
+                            aiPotentialTargets.push_back({row, minCol - 1});
+                    } else if (firstHit.second == secondHit.second) {
+                        // Vertical ship
+                        int col = firstHit.second;
+                        int minRow = std::min(firstHit.first, secondHit.first);
+                        int maxRow = std::max(firstHit.first, secondHit.first);
+
+                        if (maxRow + 1 < BOARD_SIZE && !playerBoard.isAlreadyAttacked(maxRow + 1, col))
+                            aiPotentialTargets.push_back({maxRow + 1, col});
+                        if (minRow - 1 >= 0 && !playerBoard.isAlreadyAttacked(minRow - 1, col))
+                            aiPotentialTargets.push_back({minRow - 1, col});
+                    }
+                }
+
+                // Add adjacent cells to potential targets
+                int dx[] = {-1, 1, 0, 0};
+                int dy[] = {0, 0, -1, 1};
+                for (int i = 0; i < 4; i++) {
+                    int nx = x + dx[i];
+                    int ny = y + dy[i];
+                    if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
+                        if (!playerBoard.isAlreadyAttacked(nx, ny)) {
+                            aiPotentialTargets.push_back({nx, ny});
                         }
                     }
                 }
 
                 if (hitShip->isSunk()) {
                     std::cout << "AI sank your " << hitShip->getName() << "!\n";
-                    aiMode = HUNT;
-                    aiPotentialTargets.clear();
+                    aiDestroyedShips++;
+                    aiMode = HUNT; // Return to HUNT mode after sinking the ship
+                    aiPotentialTargets.clear(); // Clear potential targets
+                    aiHits.clear(); // Clear hits for this ship
                 }
 
                 if (playerBoard.allShipsSunk()) {
-                    std::cout << "AI wins! You lose.\n";
+                    std::cout << "\nAI won! You lose. who is the best fighter?\n";
                     gameOver = true;
                     break;
                 }
                 // AI gets another turn on hit
             } else {
                 std::cout << "AI missed.\n";
-                aiTurn = false;
+                aiTurn = false; // End AI's turn on a miss
             }
         }
     }
 
     // Display final statistics
+    playerBoard.display(aiBoard, true, true);
     std::cout << "\n=== Game Over ===\n";
     std::cout << "Your moves: " << playerMoves << "\n";
     std::cout << "AI's moves: " << aiMoves << "\n";
+    std::cout << "Ships you destroyed: " << playerDestroyedShips << "\n";
+    std::cout << "Ships AI destroyed: " << aiDestroyedShips << "\n";
 
     return 0;
 }

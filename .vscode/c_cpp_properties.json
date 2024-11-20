@@ -3,17 +3,23 @@
         {
             "name": "Win32",
             "includePath": [
-                "${default}"
+                "${workspaceFolder}/**",  // Include all project files
+                "D:/apps/cpp/ucrt64/lib/gcc/x86_64-w64-mingw32/13.2.0/include",
+                "D:/apps/cpp/ucrt64/include/c++/13.2.0",
+                "D:/apps/cpp/ucrt64/include/c++/13.2.0/x86_64-w64-mingw32",
+                "D:/apps/cpp/ucrt64/include/c++/13.2.0/backward",
+                "D:/apps/cpp/ucrt64/include",
+                "D:/apps/cpp/ucrt64/lib/gcc/x86_64-w64-mingw32/13.2.0/include-fixed"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "cl.exe",
+            "compilerPath": "D:/apps/cpp/ucrt64/bin/g++.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "windows-gcc-x64"
         }
     ],
     "version": 4

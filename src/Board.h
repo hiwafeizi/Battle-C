@@ -24,8 +24,12 @@ public:
     // Processes an attack on the board
     bool receiveAttack(int x, int y, Ship*& hitShip);
 
-    // Displays the board
-    void display(bool showShips) const;
+    // Displays two boards side by side
+    void display(const Board& otherBoard, bool showPlayerShips, bool showOpponentShips) const;
+
+    // Displays game score board
+    void displayScoreboard(int playerMoves, int playerDestroyedShips, int aiMoves, int aiDestroyedShips) const;
+
 
     // Checks if all ships are sunk
     bool allShipsSunk() const;
