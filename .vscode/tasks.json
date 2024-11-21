@@ -10,7 +10,7 @@
                 "-g", // Enable debugging symbols
                 "${workspaceFolder}/src/*.cpp", // Compile all .cpp files in the src folder
                 "-o",
-                "${workspaceFolder}/src/test.exe" // Output executable in the src folder
+                "${workspaceFolder}/Battle_C.exe"
             ],
             "options": {
                 "cwd": "${workspaceFolder}/src" // Set working directory to src folder
